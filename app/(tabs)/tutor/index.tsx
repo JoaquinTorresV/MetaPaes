@@ -123,7 +123,7 @@ export default function TutorScreen() {
           {loading && (
             <View style={s.aiRow}>
               <View style={s.aiBadge}><Text style={{ color: '#fff', fontFamily: typography.family.bold, fontSize: 11 }}>A</Text></View>
-              <View style={s.aiBubble}><Text style={s.aiText}>•••</Text></View>
+              <View style={m.aiBubble}><Text style={m.aiText}>•••</Text></View>
             </View>
           )}
         </ScrollView>
