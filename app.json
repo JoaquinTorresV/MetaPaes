@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "MetaPAES",
+    "slug": "metapaes",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "metapaes",
+    "splash": {
+      "backgroundColor": "#004ac6"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "cl.metapaes.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#004ac6"
+      },
+      "package": "cl.metapaes.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
