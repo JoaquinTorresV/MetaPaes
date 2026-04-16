@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "seed:questions": "npx tsx scripts/seed-questions.ts",
+    "seed:learning-objectives": "echo \"Run 002 migration in Supabase SQL Editor\""
   },
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.2",
@@ -32,6 +34,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
     "@types/react": "~19.1.0",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
     "@typescript-eslint/parser": "^8.58.1",
@@ -40,6 +43,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.8.2",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },
   "private": true
