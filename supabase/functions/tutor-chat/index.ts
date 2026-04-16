@@ -9,6 +9,12 @@ import Anthropic from 'npm:@anthropic-ai/sdk@0.24.3'
 
 const anthropic = new Anthropic({ apiKey: Deno.env.get('CLAUDE_API_KEY') })
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
+
 interface RequestBody {
   userId: string
   message: string
@@ -31,7 +37,8 @@ interface RequestBody {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
-      headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, content-type' },
+      status: 200,
+      headers: corsHeaders,
     })
   }
 
@@ -108,14 +115,14 @@ REGLAS:
     return new Response(readable, {
       headers: {
         'Content-Type': 'text/event-stream',
-        'Access-Control-Allow-Origin': '*',
+        ...corsHeaders,
         'Cache-Control': 'no-cache',
       },
     })
   } catch (error) {
     return new Response(JSON.stringify({ error: String(error) }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     })
   }
 })

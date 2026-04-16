@@ -27,17 +27,25 @@ export async function completeOnboarding(data: OnboardingData) {
     .eq('id', data.userId)
   if (userErr) return { error: userErr.message }
 
-  // 2. Crear/actualizar user_career
+  // 2. Reemplazar user_career sin depender de una restricción única extra
+  const careerPayload = {
+    user_id: data.userId,
+    career_id: data.careerId,
+    priority: 'primary',
+    target_score: data.targetScore,
+    selected_subjects: data.selectedSubjects,
+    exam_date: data.examDate,
+  }
+
+  const { error: careerDeleteErr } = await supabase
+    .from('user_careers')
+    .delete()
+    .eq('user_id', data.userId)
+  if (careerDeleteErr) return { error: careerDeleteErr.message }
+
   const { error: careerErr } = await supabase
     .from('user_careers')
-    .upsert({
-      user_id: data.userId,
-      career_id: data.careerId,
-      priority: 'primary',
-      target_score: data.targetScore,
-      selected_subjects: data.selectedSubjects,
-      exam_date: data.examDate,
-    } as any, { onConflict: 'user_id' })
+    .insert(careerPayload as any)
   if (careerErr) return { error: careerErr.message }
 
   // 3. Inicializar subject_progress para cada asignatura

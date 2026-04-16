@@ -3,14 +3,15 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from 'react-native'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { useAuthStore } from '@/store/authStore'
 import { colors, radius, spacing, typography } from '@/config/theme'
 
 type Mode = 'login' | 'register'
 
 export default function LoginScreen() {
-  const [mode, setMode] = useState<Mode>('login')
+  const params = useLocalSearchParams<{ mode?: string }>()
+  const [mode, setMode] = useState<Mode>(params.mode === 'register' ? 'register' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -32,11 +33,20 @@ export default function LoginScreen() {
       ? await signIn(email.trim(), password)
       : await signUp(email.trim(), password, fullName.trim())
 
+    if (mode === 'register' && result.needsEmailConfirmation) {
+      router.replace({
+        pathname: '/(auth)/confirm-email',
+        params: { email: email.trim() },
+      })
+      return
+    }
+
     if (result.error) {
       // Traducir errores comunes de Supabase al español
       const msg = result.error
         .replace('Invalid login credentials', 'Correo o contraseña incorrectos')
         .replace('User already registered', 'Ya existe una cuenta con este correo')
+        .replace('Email not confirmed', 'Debes confirmar tu correo antes de iniciar sesión')
         .replace('Password should be at least 6 characters', 'La contraseña debe tener al menos 6 caracteres')
       setError(msg)
       return

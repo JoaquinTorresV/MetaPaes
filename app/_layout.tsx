@@ -34,16 +34,18 @@ function AuthGate() {
     if (!initialized) return  // Esperar a que Supabase lea la sesión guardada
 
     const inAuthGroup = segments[0] === '(auth)'
+    const inOnboardingFlow = segments[1] === 'onboarding'
 
     if (!isAuthenticated && !inAuthGroup) {
       // No autenticado fuera del grupo auth → ir a login
       router.replace('/(auth)')
     } else if (isAuthenticated && inAuthGroup) {
-      // Autenticado dentro del grupo auth → 
-      // Si completó onboarding → home, si no → primer paso del onboarding
+      // Autenticado dentro del grupo auth:
+      // - si ya completó onboarding -> tabs
+      // - si no lo completó y NO está en onboarding -> enviar al primer paso
       if (user?.onboarding_done) {
         router.replace('/(tabs)')
-      } else {
+      } else if (!inOnboardingFlow) {
         router.replace('/(auth)/onboarding/name')
       }
     }

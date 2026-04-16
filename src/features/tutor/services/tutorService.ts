@@ -34,7 +34,9 @@ export async function sendTutorMessage(req: TutorRequest): Promise<void> {
   if (!token) { req.onError('No autenticado'); return }
 
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
   if (!supabaseUrl) { req.onError('SUPABASE_URL no configurado'); return }
+  if (!supabaseAnonKey) { req.onError('SUPABASE_ANON_KEY no configurado'); return }
 
   const edgeFunctionUrl = `${supabaseUrl}/functions/v1/tutor-chat`
 
@@ -43,6 +45,7 @@ export async function sendTutorMessage(req: TutorRequest): Promise<void> {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({

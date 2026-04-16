@@ -35,7 +35,7 @@ export default function EntryScreen() {
         <View style={styles.ctas}>
           <TouchableOpacity
             style={styles.btnPrimary}
-            onPress={() => router.push('/(auth)/onboarding/name')}
+            onPress={() => router.push({ pathname: '/(auth)/login', params: { mode: 'register' } })}
             activeOpacity={0.85}
           >
             <Text style={styles.btnPrimaryText}>Crear cuenta</Text>
@@ -43,7 +43,7 @@ export default function EntryScreen() {
 
           <TouchableOpacity
             style={styles.btnSecondary}
-            onPress={() => router.push('/(auth)/login')}
+            onPress={() => router.push({ pathname: '/(auth)/login', params: { mode: 'login' } })}
             activeOpacity={0.85}
           >
             <Text style={styles.btnSecondaryText}>Ya tengo cuenta</Text>
@@ -60,7 +60,7 @@ export default function EntryScreen() {
         {/* Social */}
         <TouchableOpacity
           style={styles.btnSocial}
-          onPress={() => router.push('/(auth)/onboarding/name')}
+          onPress={() => router.push('/(auth)/login')}
           activeOpacity={0.85}
         >
           <Text style={styles.googleG}>G</Text>

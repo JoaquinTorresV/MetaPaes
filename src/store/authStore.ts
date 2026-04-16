@@ -1,7 +1,15 @@
 import { create } from 'zustand'
 import type { Session } from '@supabase/supabase-js'
+import { Platform } from 'react-native'
 import type { User } from '@/services/supabase/types'
 import { supabase } from '@/services/supabase/client'
+
+function getEmailConfirmationRedirect(): string {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return `${window.location.origin}/login?confirmed=1`
+  }
+  return 'metapaes://login?confirmed=1'
+}
 
 interface AuthState {
   user: User | null
@@ -13,7 +21,10 @@ interface AuthState {
   // Actions
   initialize: () => Promise<void>
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>
+  signUp: (email: string, password: string, fullName: string) => Promise<{
+    error: string | null
+    needsEmailConfirmation?: boolean
+  }>
   signInWithGoogle: () => Promise<{ error: string | null }>
   signOut: () => Promise<void>
   setSession: (session: Session | null) => void
@@ -76,12 +87,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { full_name: fullName } },
+        options: {
+          data: { full_name: fullName },
+          emailRedirectTo: getEmailConfirmationRedirect(),
+        },
       })
       if (error) return { error: error.message }
       // El trigger en Supabase crea la fila en users automáticamente
       set({ session: data.session, isAuthenticated: !!data.session })
-      return { error: null }
+      // Si hay confirmación por correo activa, Supabase devuelve session null.
+      return { error: null, needsEmailConfirmation: !data.session }
     } finally {
       set({ isLoading: false })
     }
