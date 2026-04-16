@@ -55,6 +55,16 @@ export default function LoginScreen() {
     // AuthGate en _layout.tsx se encarga de la redirección automáticamente
   }
 
+  async function handleGoogleSignIn() {
+    setError(null)
+    const result = await signInWithGoogle()
+    if (result.error) {
+      const msg = result.error
+        .replace('popup_closed_by_user', 'Inicio de sesión con Google cancelado')
+      setError(msg)
+    }
+  }
+
   return (
     <SafeAreaView style={s.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -133,7 +143,12 @@ export default function LoginScreen() {
             <View style={s.dividerLine} />
           </View>
 
-          <TouchableOpacity style={s.btnGoogle} onPress={signInWithGoogle} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[s.btnGoogle, isLoading && s.btnDisabled]}
+            onPress={handleGoogleSignIn}
+            activeOpacity={0.85}
+            disabled={isLoading}
+          >
             <Text style={s.googleG}>G</Text>
             <Text style={s.btnGoogleText}>Continuar con Google</Text>
           </TouchableOpacity>

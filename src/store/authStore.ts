@@ -1,14 +1,26 @@
 import { create } from 'zustand'
 import type { Session } from '@supabase/supabase-js'
 import { Platform } from 'react-native'
+import * as WebBrowser from 'expo-web-browser'
+import { makeRedirectUri } from 'expo-auth-session'
+import * as QueryParams from 'expo-auth-session/build/QueryParams'
 import type { User } from '@/services/supabase/types'
 import { supabase } from '@/services/supabase/client'
+
+WebBrowser.maybeCompleteAuthSession()
 
 function getEmailConfirmationRedirect(): string {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     return `${window.location.origin}/login?confirmed=1`
   }
   return 'metapaes://login?confirmed=1'
+}
+
+function getOAuthRedirectUri(): string {
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    return `${window.location.origin}/login`
+  }
+  return makeRedirectUri({ scheme: 'metapaes', path: 'auth/callback' })
 }
 
 interface AuthState {
@@ -105,11 +117,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signInWithGoogle: async () => {
     set({ isLoading: true })
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const redirectTo = getOAuthRedirectUri()
+
+      // En web dejamos que el navegador haga redirect directo.
+      if (Platform.OS === 'web') {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo },
+        })
+        if (error) return { error: error.message }
+        return { error: null }
+      }
+
+      // En móvil abrimos sesión auth y al volver seteamos access/refresh token.
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: 'metapaes://auth/callback' },
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
       })
       if (error) return { error: error.message }
+      if (!data?.url) return { error: 'No se pudo iniciar el flujo con Google.' }
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
+      if (result.type !== 'success') {
+        return { error: 'Inicio de sesión con Google cancelado.' }
+      }
+
+      const { params, errorCode } = QueryParams.getQueryParams(result.url)
+      if (errorCode) {
+        return { error: 'Google devolvió un error de autenticación.' }
+      }
+
+      const accessToken = typeof params.access_token === 'string' ? params.access_token : null
+      const refreshToken = typeof params.refresh_token === 'string' ? params.refresh_token : null
+
+      if (!accessToken || !refreshToken) {
+        return { error: 'No se recibieron tokens de sesión desde Google.' }
+      }
+
+      const { data: sessionData, error: sessionErr } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+      if (sessionErr) return { error: sessionErr.message }
+
+      set({ session: sessionData.session, isAuthenticated: !!sessionData.session })
+      if (sessionData.session?.user.id) {
+        await get().loadUserProfile(sessionData.session.user.id)
+      }
+
       return { error: null }
     } finally {
       set({ isLoading: false })

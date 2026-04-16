@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import { router } from 'expo-router'
+import { Platform } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/services/supabase/client'
@@ -40,12 +41,28 @@ export default function ProfileScreen() {
   const { data, isLoading } = useProfile()
   const firstName = user?.full_name?.split(' ')[0] ?? 'Estudiante'
 
+  async function performSignOut() {
+    try {
+      await signOut()
+      router.replace('/(auth)')
+    } catch {
+      Alert.alert('Error', 'No se pudo cerrar la sesión. Intenta de nuevo.')
+    }
+  }
+
   async function handleSignOut() {
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm('¿Estás seguro de cerrar sesión?')) {
+        await performSignOut()
+      }
+      return
+    }
+
     Alert.alert('Cerrar sesión', '¿Estás seguro?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Cerrar sesión', style: 'destructive',
-        onPress: async () => { await signOut(); router.replace('/(auth)') },
+        onPress: performSignOut,
       },
     ])
   }
