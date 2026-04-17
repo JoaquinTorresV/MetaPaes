@@ -34,7 +34,7 @@ function AuthGate() {
     if (!initialized) return  // Esperar a que Supabase lea la sesión guardada
 
     const inAuthGroup = segments[0] === '(auth)'
-    const inOnboardingFlow = segments[1] === 'onboarding'
+    const inOnboardingFlow = (segments as string[])[1] === 'onboarding'
 
     if (!isAuthenticated && !inAuthGroup) {
       // No autenticado fuera del grupo auth → ir a login

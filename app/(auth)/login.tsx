@@ -33,7 +33,7 @@ export default function LoginScreen() {
       ? await signIn(email.trim(), password)
       : await signUp(email.trim(), password, fullName.trim())
 
-    if (mode === 'register' && result.needsEmailConfirmation) {
+    if (mode === 'register' && (result as { error: string | null; needsEmailConfirmation?: boolean }).needsEmailConfirmation) {
       router.replace({
         pathname: '/(auth)/confirm-email',
         params: { email: email.trim() },
